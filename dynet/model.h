@@ -130,7 +130,7 @@ struct Parameter {
   Model* mp;
   unsigned long index;
 
-  Dim dim() { return get()->dim; }
+  const Dim& dim() const { return get()->dim; }
   Tensor* values() { return &(get()->values); } 
 
   void set_updated(bool b);
@@ -154,7 +154,7 @@ struct LookupParameter {
   Model* mp;
   unsigned long index;
 
-  Dim dim() { return get()->dim; }
+  const Dim dim() const { return get()->dim; }
   std::vector<Tensor>* values() { return &(get()->values); } 
 
   void set_updated(bool b);
