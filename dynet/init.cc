@@ -23,7 +23,7 @@ static void remove_args(int& argc, char**& argv, int& argi, int n) {
   assert(argc >= 0);
 }
 
-void initialize(int& argc, char**& argv, bool shared_parameters) {
+void initialize(int argc, char** argv,unsigned random_seed, bool shared_parameters) {
   if(default_device != nullptr) {
     cerr << "WARNING: Attempting to initialize dynet twice. Ignoring duplicate initialization." << endl;
     return;
@@ -33,7 +33,7 @@ void initialize(int& argc, char**& argv, bool shared_parameters) {
   cerr << "[dynet] initializing CUDA\n";
   gpudevices = initialize_gpu(argc, argv);
 #endif
-  unsigned random_seed = 0;
+  //unsigned random_seed = 0;
   int argi = 1;
   string mem_descriptor = "512";
   while(argi < argc) {
@@ -44,7 +44,8 @@ void initialize(int& argc, char**& argv, bool shared_parameters) {
         abort();
       } else {
         mem_descriptor = argv[argi+1];
-        remove_args(argc, argv, argi, 2);
+        //remove_args(argc, argv, argi, 2);
+        argi += 2;
       }
     } else if (arg == "--dynet-l2" || arg == "--dynet_l2") {
       if ((argi + 1) > argc) {
@@ -54,7 +55,8 @@ void initialize(int& argc, char**& argv, bool shared_parameters) {
         string a2 = argv[argi+1];
         float decay = 0;
         istringstream d(a2); d >> decay;
-        remove_args(argc, argv, argi, 2);
+        // remove_args(argc, argv, argi, 2);
+        argi += 2;
         if (decay < 0 || decay >= 1) {
           cerr << "[dynet] weight decay parameter must be between 0 and 1 (probably very small like 1e-6)\n";
           abort();
@@ -68,12 +70,16 @@ void initialize(int& argc, char**& argv, bool shared_parameters) {
       } else {
         string a2 = argv[argi+1];
         istringstream c(a2); c >> random_seed;
-        remove_args(argc, argv, argi, 2);
+        //remove_args(argc, argv, argi, 2);
+        argi += 2;
       }
     } else if (arg.find("--dynet") == 0) {
       cerr << "[dynet] Bad command line argument: " << arg << endl;
-      abort();
-    } else { break; }
+      //abort();
+      ++argi;
+    } else { 
+      ++argi;
+    }
   }
   if (random_seed == 0) {
     random_device rd;

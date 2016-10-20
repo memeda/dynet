@@ -18,10 +18,12 @@ static void remove_args(int& argc, char**& argv, int& argi, int n) {
 
 #define MAX_GPUS 256
 
-vector<Device*> initialize_gpu(int& argc, char**& argv) {
+vector<Device*> initialize_gpu(int argc, char** argv) 
+{
   int nDevices;
   CUDA_CHECK(cudaGetDeviceCount(&nDevices));
-  if (nDevices < 1) {
+  if (nDevices < 1) 
+  {
     cerr << "[dynet] No GPUs found, recompile without DENABLE_CUDA=1\n";
     throw std::runtime_error("No GPUs found but DYNET compiled with CUDA support.");
   }
@@ -34,64 +36,95 @@ vector<Device*> initialize_gpu(int& argc, char**& argv) {
   string mem_descriptor = "512";
   bool ngpus_requested = false;
   bool ids_requested = false;
-  for( ;argi < argc; ++argi) {
-    string arg = argv[argi];
-    if (arg == "--dynet-mem" || arg == "--dynet_mem") {
-      if ((argi + 1) > argc) {
-        cerr << "[dynet] --dynet-mem expects an argument (the memory, in megabytes, to reserve)\n";
-        abort();
-      } else {
-        mem_descriptor = argv[argi+1];
-        remove_args(argc, argv, argi, 2);
-      }
-    } else if (arg == "--dynet_gpus" || arg == "--dynet-gpus") {
-      if ((argi + 1) > argc) {
-        cerr << "[dynet] --dynet-gpus expects an argument (number of GPUs to use)\n";
-        abort();
-      } else {
-        if (ngpus_requested) {
-          cerr << "Multiple instances of --dynet-gpus" << endl; abort();
-        }
-        ngpus_requested = true;
-        string a2 = argv[argi+1];
-        istringstream c(a2); c >> requested_gpus;
-        remove_args(argc, argv, argi, 2);
-      }
-    } else if (arg == "--dynet_gpu_ids" || arg == "--dynet-gpu-ids") {
-      if ((argi + 1) > argc) {
-        cerr << "[dynet] --dynet-gpu-ids expects an argument (comma separated list of physical GPU ids to use)\n";
-        abort();
-      } else {
-        string a2 = argv[argi+1];
-        if (ids_requested) {
-          cerr << "Multiple instances of --dynet-gpu-ids" << endl; abort();
-        }
-        ids_requested = true;
-        if (a2.size() % 2 != 1) {
-          cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
-        }
-        for (unsigned i = 0; i < a2.size(); ++i) {
-          if ((i % 2 == 0 && (a2[i] < '0' || a2[i] > '9')) ||
-              (i % 2 == 1 && a2[i] != ',')) {
-            cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
-          }
-          if (i % 2 == 0) {
-            int gpu_id = a2[i] - '0';
-            if (gpu_id >= nDevices) {
-              cerr << "You requested GPU id " << gpu_id << " but system only reports up to " << nDevices << endl;
+  for( ;argi < argc; ) 
+  {
+      string arg = argv[argi];
+      if (arg == "--dynet-mem" || arg == "--dynet_mem") 
+      {
+          if ((argi + 1) > argc) 
+          {
+              cerr << "[dynet] --dynet-mem expects an argument (the memory, in megabytes, to reserve)\n";
               abort();
-            }
-            if (gpu_id >= MAX_GPUS) { cerr << "Raise MAX_GPUS\n"; abort(); }
-            gpu_mask[gpu_id]++;
-            requested_gpus++;
-            if (gpu_mask[gpu_id] != 1) {
-              cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
-            }
+          } 
+          else 
+          {
+              mem_descriptor = argv[argi+1];
+              //remove_args(argc, argv, argi, 2);
+              argi += 2;
           }
-        }
-        remove_args(argc, argv, argi, 2);
+      } 
+      else if (arg == "--dynet_gpus" || arg == "--dynet-gpus") 
+      {
+          if ((argi + 1) > argc) 
+          {
+              cerr << "[dynet] --dynet-gpus expects an argument (number of GPUs to use)\n";
+              abort();
+          } 
+          else 
+          {
+              if (ngpus_requested) 
+              {
+                  cerr << "Multiple instances of --dynet-gpus" << endl; abort();
+              }
+              ngpus_requested = true;
+              string a2 = argv[argi+1];
+              istringstream c(a2); c >> requested_gpus;
+              // remove_args(argc, argv, argi, 2);
+              argi += 2;
+          }
+      } 
+      else if (arg == "--dynet_gpu_ids" || arg == "--dynet-gpu-ids") 
+      {
+          if ((argi + 1) > argc) 
+          {
+              cerr << "[dynet] --dynet-gpu-ids expects an argument (comma separated list of physical GPU ids to use)\n";
+              abort();
+          } 
+          else 
+          {
+              string a2 = argv[argi+1];
+              if (ids_requested) 
+              {
+                  cerr << "Multiple instances of --dynet-gpu-ids" << endl; abort();
+              }
+              ids_requested = true;
+              if (a2.size() % 2 != 1) 
+              {
+                  cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
+              }
+              for (unsigned i = 0; i < a2.size(); ++i) 
+              {
+                  if ((i % 2 == 0 && (a2[i] < '0' || a2[i] > '9')) ||
+                          (i % 2 == 1 && a2[i] != ',')) 
+                  {
+                      cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
+                  }
+                  if (i % 2 == 0) 
+                  {
+                      int gpu_id = a2[i] - '0';
+                      if (gpu_id >= nDevices) 
+                      {
+                          cerr << "You requested GPU id " << gpu_id << " but system only reports up to " << nDevices << endl;
+                          abort();
+                      }
+                      if (gpu_id >= MAX_GPUS) { cerr << "Raise MAX_GPUS\n"; abort(); }
+                      gpu_mask[gpu_id]++;
+                      requested_gpus++;
+                      if (gpu_mask[gpu_id] != 1) 
+                      {
+                          cerr << "Bad argument to --dynet-gpu-ids: " << a2 << endl; abort();
+                      }
+                  }
+              }
+              //remove_args(argc, argv, argi, 2);
+              argi += 2;
+          }
       }
-    }
+      else
+      {
+          // not required args, skip to the next args.
+          ++argi;
+      }
   }
   if (ids_requested && ngpus_requested) {
     cerr << "Use only --dynet_gpus or --dynet_gpu_ids, not both\n";
