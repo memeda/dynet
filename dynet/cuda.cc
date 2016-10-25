@@ -9,13 +9,14 @@ using namespace std;
 
 namespace dynet {
 
+/** abandon for no-use
 static void remove_args(int& argc, char**& argv, int& argi, int n) {
   for (int i = argi + n; i < argc; ++i)
     argv[i - n] = argv[i];
   argc -= n;
   assert(argc >= 0);
 }
-
+*/
 #define MAX_GPUS 256
 
 vector<Device*> initialize_gpu(int argc, char** argv) 
